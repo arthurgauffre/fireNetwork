@@ -5,6 +5,7 @@ from collections import deque
 from src.games.snake_game_ai import SnakeGameAI, Direction, Point
 from src.agents.model import Linear_QNet, QTrainer
 from src.agents.helper import plot
+import os
 
 MAX_MEMORY = 100_000
 BATCH_SIZE = 1000
@@ -98,3 +99,25 @@ class Agent:
             final_move[move] = 1
 
         return final_move
+
+    def save_agent(self, file_name='agent.pth', folder_path='./model'):
+        if not os.path.exists(folder_path):
+            os.makedirs(folder_path)
+
+        file_name = os.path.join(folder_path, file_name)
+        torch.save({
+            'model_state': self.model.state_dict(),
+            'optimizer_state': self.trainer.optimizer.state_dict(),
+            'n_games': self.n_games,
+        }, file_name)
+
+    def load_agent(self, file_name='agent.pth'):
+        file_name = os.path.join('./model', file_name)
+        if os.path.exists(file_name):
+            checkpoint = torch.load(file_name, map_location=torch.device('gpu') if torch.cuda.is_available() else torch.device('cpu'))
+            self.model.load_state_dict(checkpoint['model_state'])
+            self.trainer.optimizer.load_state_dict(checkpoint['optimizer_state'])
+            self.n_games = checkpoint['n_games']
+            print(f"Loaded agent state from {file_name}")
+        else:
+            print(f"No saved state found at {file_name}")

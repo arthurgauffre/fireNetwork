@@ -1,6 +1,7 @@
 from src.agents.snake_agent import Agent
 from src.games.snake_game_ai import SnakeGameAI
 from src.agents.helper import plot
+import torch, os
 
 def train():
     plot_scores = []
@@ -9,6 +10,7 @@ def train():
     record = 0
     agent = Agent()
     game = SnakeGameAI()
+    agent.load_agent()
     while True:
         # get old state
         state_old = agent.get_state(game)
@@ -35,6 +37,7 @@ def train():
             if score > record:
                 record = score
                 agent.model.save()
+                agent.save_agent()
 
             print('Game', agent.n_games, 'Score', score, 'Record:', record)
 
