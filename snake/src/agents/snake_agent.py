@@ -20,6 +20,7 @@ class Agent:
         self.memory = deque(maxlen=MAX_MEMORY) # popleft()
         self.model = Linear_QNet(11, 256, 3)
         self.trainer = QTrainer(self.model, lr=LR, gamma=self.gamma)
+        self.max_score = 0
 
 
     def get_state(self, game):
@@ -109,6 +110,7 @@ class Agent:
             'model_state': self.model.state_dict(),
             'optimizer_state': self.trainer.optimizer.state_dict(),
             'n_games': self.n_games,
+            'max_score': self.max_score
         }, file_name)
 
     def load_agent(self, file_name='agent.pth'):
@@ -118,6 +120,7 @@ class Agent:
             self.model.load_state_dict(checkpoint['model_state'])
             self.trainer.optimizer.load_state_dict(checkpoint['optimizer_state'])
             self.n_games = checkpoint['n_games']
+            self.max_score = checkpoint['max_score']
             print(f"Loaded agent state from {file_name}")
         else:
             print(f"No saved state found at {file_name}")

@@ -36,6 +36,7 @@ def train():
 
             if score > record:
                 record = score
+                agent.max_score = record
                 agent.model.save()
                 agent.save_agent()
 
