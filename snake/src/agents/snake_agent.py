@@ -124,3 +124,17 @@ class Agent:
             print(f"Loaded agent state from {file_name}")
         else:
             print(f"No saved state found at {file_name}")
+    
+    def check_agent(self, file_name='agent.pth'):
+        print("check agent")
+        file_name = os.path.join('./model', file_name)
+        if os.path.exists(file_name):
+            checkpoint = torch.load(file_name, map_location=torch.device('gpu') if torch.cuda.is_available() else torch.device('cpu'))
+            print(f"max_score:", checkpoint['max_score'])
+            if self.max_score < int(checkpoint['max_score']):
+                print("load best gen")
+                self.trainer.optimizer.load_state_dict(checkpoint['optimizer_state'])
+                self.n_games = checkpoint['n_games']
+                print(f"Loaded agent state from {file_name}")
+        else:
+            print(f"No saved state found at {file_name}")

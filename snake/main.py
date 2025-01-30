@@ -13,7 +13,9 @@ def launch_training(agent_id):
     record = 0
     agent = Agent()
     game = SnakeGameAI()
-    
+
+    agent.load_agent()
+    record = agent.max_score
     while True:
         state_old = agent.get_state(game)
         final_move = agent.get_action(state_old)
@@ -26,12 +28,15 @@ def launch_training(agent_id):
 
         if done:
             game.reset()
+            agent.check_agent()
+            record = agent.max_score
             agent.n_games += 1
             agent.train_long_memory()
 
             if score > record:
                 record = score
                 agent.model.save()
+                agent.save_agent()
 
             print(f'Agent {agent_id} - Game {agent.n_games} - Score {score} - Record: {record}')
 
@@ -50,6 +55,7 @@ if __name__ == '__main__':
         p = multiprocessing.Process(target=launch_training, args=(i,))
         p.start()
         processes.append(p)
+    
 
     for p in processes:
         p.join()  # Ensure all processes finish
