@@ -31,9 +31,8 @@ class SnakeGameAI:
     def __init__(self, w=640, h=480, display=True):
         self.w = w
         self.h = h
-        self.display = display
-        # init display
-        if display:
+        self.should_display = display
+        if self.should_display:
             self.display = pygame.display.set_mode((self.w, self.h))
             pygame.display.set_caption('Snake')
         self.clock = pygame.time.Clock()
@@ -66,11 +65,11 @@ class SnakeGameAI:
     def play_step(self, action):
         self.frame_iteration += 1
         # 1. collect user input
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                pygame.quit()
-                quit()
-        
+        if self.should_display:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    pygame.quit()
+                    quit()
         # 2. move
         self._move(action) # update the head
         self.snake.insert(0, self.head)
@@ -112,7 +111,7 @@ class SnakeGameAI:
 
 
     def _update_ui(self):
-        if self.display == False:
+        if self.should_display == False:
             return
         self.display.fill(BLACK)
 

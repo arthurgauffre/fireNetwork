@@ -4,7 +4,6 @@ import numpy as np
 from collections import deque
 from src.games.snake_game_ai import SnakeGameAI, Direction, Point
 from src.agents.model import Linear_QNet, QTrainer
-from src.agents.helper import plot
 import os
 
 MAX_MEMORY = 100_000
