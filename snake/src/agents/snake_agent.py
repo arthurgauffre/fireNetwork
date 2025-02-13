@@ -2,7 +2,7 @@ import torch
 import random
 import numpy as np
 from collections import deque
-from src.games.snake_game_ai import SnakeGameAI, Direction, Point
+from src.games.snake_game_ai import Direction, Point
 from src.agents.model import Linear_QNet, QTrainer
 from src.agents.helper import plot
 import os
@@ -10,6 +10,7 @@ import os
 MAX_MEMORY = 100_000
 BATCH_SIZE = 1000
 LR = 0.001
+BLOCK_SIZE = 20
 
 class Agent:
 
@@ -17,14 +18,15 @@ class Agent:
         self.n_games = 0
         self.epsilon = 0 # randomness
         self.gamma = 0.9 # discount rate
-        self.memory = deque(maxlen=MAX_MEMORY) # popleft()
-        self.model = Linear_QNet(11, 256, 3)
+        self.memory = deque(maxlen=MAX_MEMORY)
+        self.model = Linear_QNet(59, 256, 3)
         self.trainer = QTrainer(self.model, lr=LR, gamma=self.gamma)
         self.max_score = 0
 
 
     def get_state(self, game):
         head = game.snake[0]
+        
         point_l = Point(head.x - 20, head.y)
         point_r = Point(head.x + 20, head.y)
         point_u = Point(head.x, head.y - 20)
@@ -35,7 +37,29 @@ class Agent:
         dir_u = game.direction == Direction.UP
         dir_d = game.direction == Direction.DOWN
 
-        state = [
+        grid_size = 5
+        grid_state = []
+        for dy in [-2, -1, 0, 1, 2]:
+            for dx in [-2, -1, 0, 1, 2]:
+                if dx == 0 and dy == 0:
+                    continue
+                cell_x = head.x + dx * BLOCK_SIZE
+                cell_y = head.y + dy * BLOCK_SIZE
+                point = Point(cell_x, cell_y)
+                
+                boundary = (cell_x < 0 or cell_x >= game.w or 
+                            cell_y < 0 or cell_y >= game.h)
+                
+                body = point in game.snake[1:]
+                
+                food = point == game.food
+                
+                grid_state.extend([
+                    boundary or body,
+                    food
+                ])
+
+        basic_state = [
             # Danger straight
             (dir_r and game.is_collision(point_r)) or 
             (dir_l and game.is_collision(point_l)) or 
@@ -53,21 +77,19 @@ class Agent:
             (dir_u and game.is_collision(point_l)) or 
             (dir_r and game.is_collision(point_u)) or 
             (dir_l and game.is_collision(point_d)),
-            
-            # Move direction
+
             dir_l,
             dir_r,
             dir_u,
             dir_d,
-            
-            # Food location 
-            game.food.x < game.head.x,  # food left
-            game.food.x > game.head.x,  # food right
-            game.food.y < game.head.y,  # food up
-            game.food.y > game.head.y  # food down
-            ]
+            game.food.x < game.head.x,
+            game.food.x > game.head.x,
+            game.food.y < game.head.y,
+            game.food.y > game.head.y
+        ]
 
-        return np.array(state, dtype=int)
+        full_state = np.array(basic_state + grid_state, dtype=int)
+        return full_state
 
     def remember(self, state, action, reward, next_state, done):
         self.memory.append((state, action, reward, next_state, done)) # popleft if MAX_MEMORY is reached
