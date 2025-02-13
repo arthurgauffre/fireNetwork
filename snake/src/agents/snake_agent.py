@@ -13,15 +13,15 @@ LR = 0.001
 
 class Agent:
 
-    def __init__(self):
+    def __init__(self, file_lock):
         self.n_games = 0
-        self.epsilon = 0 # randomness
-        self.gamma = 0.9 # discount rate
-        self.memory = deque(maxlen=MAX_MEMORY) # popleft()
+        self.epsilon = 0
+        self.gamma = 0.9  # discount rate
+        self.memory = deque(maxlen=MAX_MEMORY)
         self.model = Linear_QNet(11, 256, 3)
         self.trainer = QTrainer(self.model, lr=LR, gamma=self.gamma)
         self.max_score = 0
-
+        self.file_lock = file_lock
 
     def get_state(self, game):
         head = game.snake[0]
@@ -102,39 +102,44 @@ class Agent:
         return final_move
 
     def save_agent(self, file_name='agent.pth', folder_path='./model'):
-        if not os.path.exists(folder_path):
-            os.makedirs(folder_path)
+        with self.file_lock:
+            if not os.path.exists(folder_path):
+                os.makedirs(folder_path)
 
-        file_name = os.path.join(folder_path, file_name)
-        torch.save({
-            'model_state': self.model.state_dict(),
-            'optimizer_state': self.trainer.optimizer.state_dict(),
-            'n_games': self.n_games,
-            'max_score': self.max_score
-        }, file_name)
+            file_name = os.path.join(folder_path, file_name)
+            torch.save({
+                'model_state': self.model.state_dict(),
+                'optimizer_state': self.trainer.optimizer.state_dict(),
+                'n_games': self.n_games,
+                'max_score': self.max_score
+            }, file_name)
 
     def load_agent(self, file_name='agent.pth'):
-        file_name = os.path.join('./model', file_name)
-        if os.path.exists(file_name):
-            checkpoint = torch.load(file_name, map_location=torch.device('gpu') if torch.cuda.is_available() else torch.device('cpu'))
-            self.model.load_state_dict(checkpoint['model_state'])
-            self.trainer.optimizer.load_state_dict(checkpoint['optimizer_state'])
-            self.n_games = checkpoint['n_games']
-            self.max_score = checkpoint['max_score']
-            print(f"Loaded agent state from {file_name}")
-        else:
-            print(f"No saved state found at {file_name}")
+        with self.file_lock:
+            file_name = os.path.join('./model', file_name)
+            if os.path.exists(file_name):
+                checkpoint = torch.load(file_name, map_location=torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu'))
+                self.model.load_state_dict(checkpoint['model_state'])
+                self.trainer.optimizer.load_state_dict(checkpoint['optimizer_state'])
+                self.n_games = checkpoint['n_games']
+                self.max_score = checkpoint['max_score']
+                print(f"Loaded agent state from {file_name}")
+            else:
+                print(f"No saved state found at {file_name}")
     
     def check_agent(self, file_name='agent.pth'):
         print("check agent")
         file_name = os.path.join('./model', file_name)
-        if os.path.exists(file_name):
-            checkpoint = torch.load(file_name, map_location=torch.device('gpu') if torch.cuda.is_available() else torch.device('cpu'))
-            print(f"max_score:", checkpoint['max_score'])
-            if self.max_score < int(checkpoint['max_score']):
-                print("load best gen")
-                self.trainer.optimizer.load_state_dict(checkpoint['optimizer_state'])
-                self.n_games = checkpoint['n_games']
-                print(f"Loaded agent state from {file_name}")
-        else:
-            print(f"No saved state found at {file_name}")
+        with self.file_lock:
+            if os.path.exists(file_name):
+                checkpoint = torch.load(file_name, map_location=torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu'))
+                print(f"max_score:", checkpoint['max_score'])
+                saved_max_score = checkpoint['max_score']
+                if self.max_score < saved_max_score:
+                    print("load best gen")
+                    self.trainer.optimizer.load_state_dict(checkpoint['optimizer_state'])
+                    self.n_games = checkpoint['n_games']
+                    self.max_score = saved_max_score
+                    print(f"Loaded agent state from {file_name}")
+            else:
+                print(f"No saved state found at {file_name}")

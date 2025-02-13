@@ -6,12 +6,12 @@ import torch
 
 NUM_PROCESSES = 4
 
-def launch_training(agent_id):
+def launch_training(agent_id, file_lock):
     plot_scores = []
     plot_mean_scores = []
     total_score = 0
     record = 0
-    agent = Agent()
+    agent = Agent(file_lock)  # Pass the lock to Agent
     game = SnakeGameAI()
 
     agent.load_agent()
@@ -35,6 +35,7 @@ def launch_training(agent_id):
 
             if score > record:
                 record = score
+                agent.max_score = record  # Update agent's max_score
                 agent.model.save()
                 agent.save_agent()
 
@@ -49,13 +50,15 @@ def launch_training(agent_id):
 
 if __name__ == '__main__':
     torch.multiprocessing.set_start_method('spawn')
+    
+    # Create a lock for file operations
+    file_lock = multiprocessing.Lock()
 
     processes = []
     for i in range(NUM_PROCESSES):
-        p = multiprocessing.Process(target=launch_training, args=(i,))
+        p = multiprocessing.Process(target=launch_training, args=(i, file_lock))
         p.start()
         processes.append(p)
     
-
     for p in processes:
-        p.join()  # Ensure all processes finish
+        p.join()

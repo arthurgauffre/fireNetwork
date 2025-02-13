@@ -28,12 +28,14 @@ SPEED = 40
 
 class SnakeGameAI:
 
-    def __init__(self, w=640, h=480):
+    def __init__(self, w=640, h=480, display=True):
         self.w = w
         self.h = h
+        self.display = display
         # init display
-        self.display = pygame.display.set_mode((self.w, self.h))
-        pygame.display.set_caption('Snake')
+        if display:
+            self.display = pygame.display.set_mode((self.w, self.h))
+            pygame.display.set_caption('Snake')
         self.clock = pygame.time.Clock()
         self.reset()
 
@@ -110,6 +112,8 @@ class SnakeGameAI:
 
 
     def _update_ui(self):
+        if self.display == False:
+            return
         self.display.fill(BLACK)
 
         for pt in self.snake:
