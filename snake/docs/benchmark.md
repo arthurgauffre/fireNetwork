@@ -8,6 +8,9 @@
   - [Benchmark 1](#benchmark-1)
     - [Changes](#changes)
     - [Stats](#stats)
+  - [Benchmark 2](#benchmark-2)
+    - [Changes](#changes-1)
+    - [Stats](#stats-1)
 
 ## Main Documentation
 
@@ -33,4 +36,24 @@ Rewards:
 
 ### Stats
 
-<img src="images/Stats1.png" alt="image5" style="width:400px;"/>
+<img src="images/Stats1.png" alt="image1" style="width:400px;"/>
+
+## Benchmark 2
+
+### Changes
+
+Original snake with 11 neurons:
+
+- 3 : danger around the snake (1 ex radius)
+- 4 : possible direction (UP/DOWN/LEFT/RIGHT)
+- 4 : food location boolean (if the food is at the UP/DOWN/LEFT/RIGHT of the snake)
+
+multithreading:
+ - 4 process
+ - load the best agent each time (agent.pth)
+ - use one plot for stat
+ - display only the first process
+
+### Stats
+
+<img src="images/Stats2.png" alt="image2" style="width:400px;"/>
