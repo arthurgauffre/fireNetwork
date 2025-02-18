@@ -11,6 +11,9 @@
   - [Benchmark 2](#benchmark-2)
     - [Changes](#changes-1)
     - [Stats](#stats-1)
+  - [Benchmark 3](#benchmark-3)
+    - [Changes](#changes-2)
+    - [Stats](#stats-2)
 
 ## Main Documentation
 
@@ -57,3 +60,15 @@ multithreading:
 ### Stats
 
 <img src="images/Stats2.png" alt="image2" style="width:400px;"/>
+
+## Benchmark 3
+
+### Changes
+
+Snake with 59 neurons:
+
+add 5*5 around the snake's head with the boundary and the if he contain food
+
+### Stats
+
+<img src="images/Stats3.png" alt="image3" style="width:400px;"/>
